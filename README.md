@@ -1,8 +1,7 @@
-<div align="center">
 
 # TextArt Studio
 
-**Editor criativo de texto e elementos visuais para Android, iOS e Web (PWA)**
+## **Editor criativo de texto e elementos visuais para Android, iOS e Web (PWA)**
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.41.1-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.11.0-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
@@ -20,6 +19,7 @@
 TextArt Studio é um editor criativo *mobile-first* que permite adicionar textos estilizados, stickers e elementos visuais sobre qualquer fundo. Focado em oferecer a maior variedade de fontes e recursos de customização, com experiência fluida e intuitiva.
 
 **Diferenciais:**
+
 - Mais de **900 fontes** via Google Fonts com preview em tempo real
 - Canvas interativo com gestos naturais (mover, escalar, rotacionar)
 - Sistema de **Undo/Redo** com até 30 estados
@@ -32,7 +32,7 @@ TextArt Studio é um editor criativo *mobile-first* que permite adicionar textos
 ## Funcionalidades Implementadas (MVP)
 
 | Feature | Status |
-|---|---|
+|- --|---|
 | Canvas com múltiplos elementos | ✅ |
 | Gestos: mover, escalar, rotacionar | ✅ |
 | Seleção e deleção de elementos | ✅ |
@@ -60,7 +60,7 @@ TextArt Studio é um editor criativo *mobile-first* que permite adicionar textos
 ### Tecnologias
 
 | Categoria | Pacote | Versão |
-|---|---|---|
+|-- -|---|---|
 | Framework | Flutter | 3.41.1 |
 | Estado | flutter_bloc + equatable | ^8.1.6 |
 | Navegação | go_router | ^14.3.0 |
@@ -75,7 +75,7 @@ TextArt Studio é um editor criativo *mobile-first* que permite adicionar textos
 
 O projeto segue **Clean Architecture** com separação em três camadas por feature:
 
-```
+```bash
 Presentation  →  BLoC (eventos, estados, bloc)
                  Pages + Widgets
 Domain        →  Entities + Repository interfaces
@@ -88,7 +88,7 @@ Comunicação unidirecional: `UI → Event → BLoC → State → UI`
 
 ## Estrutura do Projeto
 
-```
+```bash
 lib/
 ├── app.dart                        # MaterialApp.router + tema
 ├── main.dart                       # Entry point (prod)
@@ -199,6 +199,7 @@ flutter analyze
 ## Roadmap
 
 ### v1.0 — MVP (atual)
+
 - [x] Canvas interativo com texto e stickers
 - [x] 28 fontes Google Fonts com seletor e busca
 - [x] Edição em tempo real de elementos no canvas
@@ -207,6 +208,7 @@ flutter analyze
 - [x] Undo / Redo (30 estados)
 
 ### v1.1 — Qualidade do Editor
+
 - [ ] Duplo-toque para editar texto diretamente no canvas
 - [ ] Seletor de cor completo (color wheel)
 - [ ] Alinhamento de texto (esquerda / centro / direita)
@@ -216,11 +218,13 @@ flutter analyze
 - [ ] Ordenação de camadas (Z-index)
 
 ### v1.2 — Backend & Sync
+
 - [ ] Firebase Auth (Google / Apple / Email)
 - [ ] Sincronização de projetos no Firestore
 - [ ] Upload de thumbnails no Firebase Storage
 
 ### v2.0 — Premium
+
 - [ ] Exportação em vídeo MP4 (Lottie + ffmpeg)
 - [ ] Mais de 500 fontes desbloqueadas
 - [ ] Exportação 4K (pixel ratio 4×)
@@ -234,17 +238,23 @@ Contribuições são bem-vindas! Para contribuir:
 
 1. Faça um fork do projeto
 2. Crie uma branch para sua feature
+
    ```bash
    git checkout -b feature/minha-feature
    ```
+
 3. Commit com mensagem descritiva (seguindo [Conventional Commits](https://www.conventionalcommits.org/pt-br/))
+
    ```bash
    git commit -m "feat: adiciona seletor de cor avançado"
    ```
+
 4. Push para a branch
+
    ```bash
    git push origin feature/minha-feature
    ```
+
 5. Abra um Pull Request
 
 ---
@@ -254,8 +264,6 @@ Contribuições são bem-vindas! Para contribuir:
 Distribuído sob a licença MIT. Veja [`LICENSE`](LICENSE) para mais informações.
 
 ---
-
-<div align="center">
 
 Feito com Flutter por [Uederson Ferreira](https://github.com/uederson-ferreira)
 
