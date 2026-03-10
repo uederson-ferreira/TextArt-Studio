@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -149,6 +148,7 @@ class _TextElementWidgetState extends State<_TextElementWidget> {
           child: Transform.scale(
             scale: _scale,
             child: Stack(
+              clipBehavior: Clip.none,
               children: [
                 _buildText(),
                 if (widget.isSelected)
@@ -331,6 +331,7 @@ class _StickerElementWidgetState extends State<_StickerElementWidget> {
           child: Transform.scale(
             scale: _scale,
             child: Stack(
+              clipBehavior: Clip.none,
               children: [
                 Opacity(
                   opacity: widget.sticker.opacity,
@@ -370,26 +371,6 @@ class _StickerElementWidgetState extends State<_StickerElementWidget> {
           width: widget.sticker.size,
           height: widget.sticker.size,
           fit: BoxFit.contain,
-        );
-      case StickerType.gif:
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: CachedNetworkImage(
-            imageUrl: widget.sticker.assetPath,
-            width: widget.sticker.size,
-            height: widget.sticker.size,
-            fit: BoxFit.contain,
-            placeholder: (_, __) => const Center(
-              child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2)),
-            ),
-            errorWidget: (_, __, ___) => const Icon(
-              Icons.gif_box_outlined,
-              color: Colors.white54,
-            ),
-          ),
         );
       case StickerType.emoji:
       default:

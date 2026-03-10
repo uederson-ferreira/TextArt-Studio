@@ -18,7 +18,6 @@ import '../../../stickers/data/repositories/local_svg_stickers.dart';
 import '../../../stickers/domain/entities/sticker_entity.dart';
 import '../../../stickers/presentation/pages/sticker_picker_page.dart';
 import '../../../stickers/presentation/pages/svg_repo_search_page.dart';
-import '../../../stickers/presentation/pages/giphy_search_page.dart';
 
 enum ToolbarTab { text, sticker, background, export }
 
@@ -783,64 +782,29 @@ class _StickerPanelState extends State<_StickerPanel> {
               ],
             ),
           ),
-          // Search buttons row
+          // Search button
           Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: AppSizes.space12, vertical: 4),
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _openSvgRepoSearch(context),
-                    icon: const Icon(Icons.search, size: 15),
-                    label: const Text('Ícones (200k+)'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      textStyle: const TextStyle(fontSize: 12),
-                    ),
-                  ),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _openSvgRepoSearch(context),
+                icon: const Icon(Icons.search, size: 16),
+                label: const Text('Buscar ícones (200k+ figuras)'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  textStyle: const TextStyle(fontSize: 13),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _openGiphySearch(context),
-                    icon: const Icon(Icons.gif_box_outlined, size: 15),
-                    label: const Text('GIFs Animados'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.purpleAccent,
-                      side: const BorderSide(color: Colors.purpleAccent),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      textStyle: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
           Flexible(
             child: _tab == 0 ? _buildSvgGrid(context) : _buildEmojiGrid(context),
           ),
         ],
-      ),
-    );
-  }
-
-  void _openGiphySearch(BuildContext context) {
-    final bloc = context.read<EditorBloc>();
-    widget.onClose();
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => GiphySearchPage(
-          onStickerSelected: (sticker) {
-            final element = StickerElement.create(
-              assetPath: sticker.assetPath,
-              type: StickerType.gif,
-            );
-            bloc.add(EditorAddSticker(element));
-          },
-        ),
       ),
     );
   }

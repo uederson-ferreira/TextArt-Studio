@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
 
-enum StickerType { svg, emoji, lottie, image, gif }
+enum StickerType { svg, emoji, lottie, image }
 
 class StickerElement extends Equatable {
   final String id;
