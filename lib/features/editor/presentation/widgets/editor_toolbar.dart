@@ -17,6 +17,7 @@ import '../../../fonts/presentation/pages/font_picker_page.dart';
 import '../../../stickers/data/repositories/local_svg_stickers.dart';
 import '../../../stickers/domain/entities/sticker_entity.dart';
 import '../../../stickers/presentation/pages/sticker_picker_page.dart';
+import '../../../stickers/presentation/pages/svg_repo_search_page.dart';
 
 enum ToolbarTab { text, sticker, background, export }
 
@@ -781,10 +782,47 @@ class _StickerPanelState extends State<_StickerPanel> {
               ],
             ),
           ),
+          // SVGRepo search button
+          Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.space12, vertical: 4),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _openSvgRepoSearch(context),
+                icon: const Icon(Icons.search, size: 16),
+                label: const Text('Buscar ícones (200k+ figuras)'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  textStyle: const TextStyle(fontSize: 13),
+                ),
+              ),
+            ),
+          ),
           Flexible(
             child: _tab == 0 ? _buildSvgGrid(context) : _buildEmojiGrid(context),
           ),
         ],
+      ),
+    );
+  }
+
+  void _openSvgRepoSearch(BuildContext context) {
+    final bloc = context.read<EditorBloc>();
+    widget.onClose();
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SvgRepoSearchPage(
+          onStickerSelected: (sticker) {
+            final element = StickerElement.create(
+              assetPath: sticker.assetPath,
+              type: StickerType.svg,
+            );
+            bloc.add(EditorAddSticker(element));
+          },
+        ),
       ),
     );
   }
