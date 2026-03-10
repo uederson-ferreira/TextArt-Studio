@@ -9,3 +9,4 @@ Future<void> shareImage(Uint8List bytes) async {
 Future<void> saveToGallery(Uint8List bytes) async {
   throw UnsupportedError('Gallery not supported on this platform');
 }
+

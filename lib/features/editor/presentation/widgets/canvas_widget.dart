@@ -69,7 +69,8 @@ class _CanvasWidgetState extends State<CanvasWidget> {
   }
 
   Color _resolveBackground(EditorState state) {
-    if (state.project.backgroundType == CanvasBackground.transparent) {
+    if (state.exportTransparent ||
+        state.project.backgroundType == CanvasBackground.transparent) {
       return Colors.transparent;
     }
     return Color(state.project.backgroundColor);
@@ -158,8 +159,7 @@ class _TextElementWidgetState extends State<_TextElementWidget> {
                         bloc.add(EditorRemoveText(widget.element.id)),
                     onDuplicate: () =>
                         bloc.add(EditorDuplicateText(widget.element.id)),
-                    onResizeUpdate: (details) {
-                      final delta = details.delta.dx + details.delta.dy;
+                    onResize: (delta) {
                       final newScale = (_scale + delta * 0.01).clamp(0.2, 5.0);
                       setState(() => _scale = newScale);
                       bloc.add(EditorScaleElement(widget.element.id, newScale));
@@ -348,8 +348,7 @@ class _StickerElementWidgetState extends State<_StickerElementWidget> {
                         bloc.add(EditorRemoveSticker(widget.sticker.id)),
                     onDuplicate: () =>
                         bloc.add(EditorDuplicateSticker(widget.sticker.id)),
-                    onResizeUpdate: (details) {
-                      final delta = details.delta.dx + details.delta.dy;
+                    onResize: (delta) {
                       final newScale = (_scale + delta * 0.01).clamp(0.2, 5.0);
                       setState(() => _scale = newScale);
                       bloc.add(EditorScaleElement(widget.sticker.id, newScale));

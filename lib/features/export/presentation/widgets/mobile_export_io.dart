@@ -34,3 +34,4 @@ Future<void> saveToGallery(Uint8List bytes) async {
     throw 'Plugin falhou: ${result['errorMessage'] ?? 'Causa desconhecida'}';
   }
 }
+

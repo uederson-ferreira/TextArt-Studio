@@ -147,7 +147,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
     emit(state.copyWith(
       project: state.project.copyWith(
           stickerElements: [...state.project.stickerElements, copy]),
-      selectedElementId: copy.id,
+      selectedElementId: event.elementId,
       canUndo: _history.canUndo,
       canRedo: _history.canRedo,
     ));
@@ -168,7 +168,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
     emit(state.copyWith(
       project: state.project.copyWith(
           textElements: [...state.project.textElements, copy]),
-      selectedElementId: copy.id,
+      selectedElementId: event.elementId,
       canUndo: _history.canUndo,
       canRedo: _history.canRedo,
     ));
@@ -318,7 +318,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
     emit(state.copyWith(
       isExporting: event.isExporting,
       exportTransparent: event.transparent,
-      clearSelection: event.isExporting, // Hide handles during export
+      clearSelection: event.isExporting,
     ));
   }
 }

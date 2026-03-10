@@ -48,8 +48,8 @@ class ExportToImage {
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder);
 
-    // Draw original image
-    canvas.drawImage(source, Offset.zero, ui.Paint());
+    // Draw original image (preserving alpha/transparency)
+    canvas.drawImage(source, Offset.zero, ui.Paint()..blendMode = ui.BlendMode.src);
 
     // Draw watermark text
     final paragraphBuilder = ui.ParagraphBuilder(

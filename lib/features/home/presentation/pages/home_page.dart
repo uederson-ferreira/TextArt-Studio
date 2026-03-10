@@ -6,7 +6,6 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/navigation/app_router.dart';
-import '../../../../shared/widgets/gradient_button.dart';
 import '../../../editor/domain/entities/project.dart';
 import '../../../projects/presentation/bloc/project_bloc.dart';
 import '../../../projects/presentation/bloc/project_event.dart';
@@ -192,38 +191,34 @@ class _HomeViewState extends State<_HomeView> {
   Widget _buildHeroSection(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(AppSizes.screenPadding),
-      padding: const EdgeInsets.all(AppSizes.space24),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSizes.space24, vertical: AppSizes.space20),
       decoration: BoxDecoration(
         gradient: AppColors.gradientBrandDiagonal,
         borderRadius: BorderRadius.circular(AppSizes.radiusXl),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            'Crie designs\nincríveis',
-            style: AppTypography.displayMedium(color: Colors.white),
-          ),
-          const SizedBox(height: AppSizes.space8),
-          Text(
-            'Adicione texto, stickers e efeitos às suas fotos.',
-            style: AppTypography.bodyMedium(
-                color: Colors.white.withValues(alpha: 0.85)),
-          ),
-          const SizedBox(height: AppSizes.space20),
-          ElevatedButton.icon(
-            onPressed: () => context.push(AppRoutes.editor),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: AppColors.primary,
-              minimumSize: const Size(0, 44),
-            ),
-            icon: const Icon(Icons.add),
-            label: Text(
-              'Novo Projeto',
-              style: AppTypography.labelLarge(color: AppColors.primary),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Crie designs incríveis',
+                  style: AppTypography.titleLarge(color: Colors.white),
+                ),
+                const SizedBox(height: AppSizes.space4),
+                Text(
+                  'Texto, stickers e efeitos para suas fotos.',
+                  style: AppTypography.bodySmall(
+                      color: Colors.white.withValues(alpha: 0.85)),
+                ),
+              ],
             ),
           ),
+          const SizedBox(width: AppSizes.space12),
+          const Icon(Icons.auto_awesome,
+              color: Colors.white, size: 40),
         ],
       ),
     );
@@ -231,19 +226,19 @@ class _HomeViewState extends State<_HomeView> {
 
   Widget _buildEmptyState(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(AppSizes.space32),
+      padding: const EdgeInsets.symmetric(vertical: AppSizes.space48),
       child: Column(
         children: [
           Container(
-            width: 80,
-            height: 80,
+            width: 72,
+            height: 72,
             decoration: BoxDecoration(
               color: AppColors.surfaceHighDark,
               borderRadius: BorderRadius.circular(AppSizes.radiusXl),
             ),
             child: const Icon(
               Icons.image_outlined,
-              size: 40,
+              size: 36,
               color: AppColors.textDisabledDark,
             ),
           ),
@@ -255,15 +250,9 @@ class _HomeViewState extends State<_HomeView> {
           ),
           const SizedBox(height: AppSizes.space8),
           Text(
-            'Crie seu primeiro projeto\nclicando no botão abaixo',
-            style: AppTypography.bodyMedium(),
+            'Toque em  +  para criar seu primeiro projeto',
+            style: AppTypography.bodySmall(color: AppColors.textDisabledDark),
             textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppSizes.space24),
-          GradientButton(
-            label: 'Criar Projeto',
-            icon: Icons.add,
-            onPressed: () => context.push(AppRoutes.editor),
           ),
         ],
       ),

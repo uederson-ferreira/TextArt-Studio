@@ -10,3 +10,4 @@ Future<void> downloadImageOnWeb(Uint8List bytes, String filename) async {
     ..click();
   html.Url.revokeObjectUrl(url);
 }
+
