@@ -11,7 +11,7 @@ enum StickerCategory {
   shapes,
 }
 
-enum StickerRenderType { emoji, svg }
+enum StickerRenderType { emoji, svg, gif }
 
 class StickerEntity extends Equatable {
   final String id;
