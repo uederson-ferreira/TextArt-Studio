@@ -67,6 +67,22 @@ class EditorRemoveSticker extends EditorEvent {
   List<Object?> get props => [elementId];
 }
 
+class EditorDuplicateSticker extends EditorEvent {
+  final String elementId;
+  const EditorDuplicateSticker(this.elementId);
+
+  @override
+  List<Object?> get props => [elementId];
+}
+
+class EditorDuplicateText extends EditorEvent {
+  final String elementId;
+  const EditorDuplicateText(this.elementId);
+
+  @override
+  List<Object?> get props => [elementId];
+}
+
 class EditorSelectElement extends EditorEvent {
   final String? elementId;
   const EditorSelectElement(this.elementId);
@@ -131,4 +147,14 @@ class EditorRotateElement extends EditorEvent {
 
   @override
   List<Object?> get props => [elementId, rotation];
+}
+
+class EditorSetExporting extends EditorEvent {
+  final bool isExporting;
+  final bool transparent;
+
+  const EditorSetExporting(this.isExporting, {this.transparent = false});
+
+  @override
+  List<Object?> get props => [isExporting, transparent];
 }

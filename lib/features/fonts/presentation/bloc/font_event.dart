@@ -31,3 +31,7 @@ class FontSelect extends FontEvent {
   @override
   List<Object?> get props => [family];
 }
+
+class FontLoadFeatured extends FontEvent {
+  const FontLoadFeatured();
+}

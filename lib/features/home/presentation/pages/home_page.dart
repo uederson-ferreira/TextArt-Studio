@@ -32,18 +32,22 @@ class _HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<_HomeView> {
-  late final GoRouter _router;
+  GoRouter? _router;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _router = GoRouter.of(context);
-    _router.routerDelegate.addListener(_onRouteChanged);
+    final router = GoRouter.of(context);
+    if (_router != router) {
+      _router?.routerDelegate.removeListener(_onRouteChanged);
+      _router = router;
+      _router!.routerDelegate.addListener(_onRouteChanged);
+    }
   }
 
   void _onRouteChanged() {
     // When we return to home, reload project list
-    final location = _router.state.uri.toString();
+    final location = _router?.state.uri.toString();
     if (location == AppRoutes.home && mounted) {
       context.read<ProjectBloc>().add(const ProjectLoadAll());
     }
@@ -51,7 +55,7 @@ class _HomeViewState extends State<_HomeView> {
 
   @override
   void dispose() {
-    _router.routerDelegate.removeListener(_onRouteChanged);
+    _router?.routerDelegate.removeListener(_onRouteChanged);
     super.dispose();
   }
 

@@ -12,6 +12,8 @@ class EditorState extends Equatable {
   final bool canUndo;
   final bool canRedo;
   final String? errorMessage;
+  final bool isExporting;
+  final bool exportTransparent;
 
   const EditorState({
     this.status = EditorStatus.initial,
@@ -20,6 +22,8 @@ class EditorState extends Equatable {
     this.canUndo = false,
     this.canRedo = false,
     this.errorMessage,
+    this.isExporting = false,
+    this.exportTransparent = false,
   });
 
   factory EditorState.initial() => EditorState(
@@ -37,6 +41,8 @@ class EditorState extends Equatable {
     bool? canUndo,
     bool? canRedo,
     String? errorMessage,
+    bool? isExporting,
+    bool? exportTransparent,
   }) {
     return EditorState(
       status: status ?? this.status,
@@ -46,6 +52,8 @@ class EditorState extends Equatable {
       canUndo: canUndo ?? this.canUndo,
       canRedo: canRedo ?? this.canRedo,
       errorMessage: errorMessage ?? this.errorMessage,
+      isExporting: isExporting ?? this.isExporting,
+      exportTransparent: exportTransparent ?? this.exportTransparent,
     );
   }
 
@@ -57,5 +65,7 @@ class EditorState extends Equatable {
         canUndo,
         canRedo,
         errorMessage,
+        isExporting,
+        exportTransparent,
       ];
 }

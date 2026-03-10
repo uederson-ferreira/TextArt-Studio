@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../bloc/sticker_bloc.dart';
 import '../bloc/sticker_event.dart';
 import '../bloc/sticker_state.dart';
 import '../../domain/entities/sticker_entity.dart';
 import '../../data/repositories/sticker_repository_impl.dart';
+import '../../data/repositories/all_emojis.dart';
+import '../../data/repositories/local_svg_stickers.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_typography.dart';
@@ -38,18 +41,35 @@ class _StickerPickerViewState extends State<_StickerPickerView>
 
   static const _categories = [
     ('Todos', StickerCategory.all),
+    ('Artes SVG', StickerCategory.shapes),
     ('Rostos', StickerCategory.faces),
     ('Gestos', StickerCategory.gestures),
     ('Objetos', StickerCategory.objects),
     ('Animais', StickerCategory.animals),
     ('Comida', StickerCategory.food),
     ('Símbolos', StickerCategory.symbols),
-    ('Formas', StickerCategory.shapes),
   ];
+
+  late final List<String> _categoryTitles;
 
   @override
   void initState() {
     super.initState();
+
+    _categoryTitles = _categories.map((c) {
+      final name = c.$1;
+      final cat = c.$2;
+      final int count;
+      if (cat == StickerCategory.all) {
+        count = allEmojis.length + localSvgStickers.length;
+      } else if (cat == StickerCategory.shapes) {
+        count = localSvgStickers.length;
+      } else {
+        count = allEmojis.where((s) => s.category == cat).length;
+      }
+      return '$name ($count)';
+    }).toList();
+
     _tabController = TabController(length: _categories.length, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
@@ -57,6 +77,14 @@ class _StickerPickerViewState extends State<_StickerPickerView>
               StickerLoadByCategory(_categories[_tabController.index].$2),
             );
       }
+    });
+
+    // Start on the SVG tab (index 1) so user sees shapes first
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _tabController.animateTo(1);
+      context
+          .read<StickerBloc>()
+          .add(StickerLoadByCategory(StickerCategory.shapes));
     });
   }
 
@@ -77,7 +105,7 @@ class _StickerPickerViewState extends State<_StickerPickerView>
           controller: _tabController,
           isScrollable: true,
           tabAlignment: TabAlignment.start,
-          tabs: _categories.map((c) => Tab(text: c.$1)).toList(),
+          tabs: _categoryTitles.map((title) => Tab(text: title)).toList(),
         ),
       ),
       body: BlocBuilder<StickerBloc, StickerState>(
@@ -109,24 +137,33 @@ class _StickerPickerViewState extends State<_StickerPickerView>
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppColors.surfaceHighDark,
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.radiusMd),
-                    border:
-                        Border.all(color: AppColors.dividerDark),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                    border: Border.all(color: AppColors.dividerDark),
                   ),
-                  child: Center(
-                    child: Text(
-                      sticker.assetPath,
-                      style: const TextStyle(fontSize: 36),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: _buildStickerPreview(sticker)),
                 ),
               );
             },
           );
         },
       ),
+    );
+  }
+
+  Widget _buildStickerPreview(StickerEntity sticker) {
+    if (sticker.renderType == StickerRenderType.svg) {
+      return SvgPicture.string(
+        sticker.assetPath,
+        width: 52,
+        height: 52,
+        fit: BoxFit.contain,
+      );
+    }
+    return Text(
+      sticker.assetPath,
+      style: const TextStyle(fontSize: 36),
+      textAlign: TextAlign.center,
     );
   }
 }

@@ -55,6 +55,7 @@ class _FontPickerViewState extends State<_FontPickerView>
   late TabController _tabController;
   final _searchController = TextEditingController();
 
+  // "Destaques" tab is index 0; category tabs start at index 1
   static const _categories = [
     ('Todos', FontCategory.all),
     ('Sem Serifa', FontCategory.sansSerif),
@@ -64,16 +65,30 @@ class _FontPickerViewState extends State<_FontPickerView>
     ('Mono', FontCategory.monospace),
   ];
 
+  // Total tabs = 1 (Destaques) + _categories.length
+  static const int _featuredTabIndex = 0;
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _categories.length, vsync: this);
+    _tabController =
+        TabController(length: 1 + _categories.length, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
-        context.read<FontBloc>().add(
-              FontLoadByCategory(_categories[_tabController.index].$2),
-            );
+        final index = _tabController.index;
+        if (index == _featuredTabIndex) {
+          context.read<FontBloc>().add(const FontLoadFeatured());
+        } else {
+          context.read<FontBloc>().add(
+                FontLoadByCategory(
+                    _categories[index - 1].$2),
+              );
+        }
       }
+    });
+    // Load featured fonts initially
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FontBloc>().add(const FontLoadFeatured());
     });
   }
 
@@ -95,9 +110,10 @@ class _FontPickerViewState extends State<_FontPickerView>
           controller: _tabController,
           isScrollable: true,
           tabAlignment: TabAlignment.start,
-          tabs: _categories
-              .map((c) => Tab(text: c.$1))
-              .toList(),
+          tabs: [
+            const Tab(text: 'Destaques ⭐'),
+            ..._categories.map((c) => Tab(text: c.$1)),
+          ],
         ),
       ),
       body: Column(

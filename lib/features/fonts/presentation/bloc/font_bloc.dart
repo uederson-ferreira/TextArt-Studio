@@ -13,6 +13,7 @@ class FontBloc extends Bloc<FontEvent, FontState> {
     on<FontLoadByCategory>(_onLoadByCategory);
     on<FontSearch>(_onSearch);
     on<FontSelect>(_onSelect);
+    on<FontLoadFeatured>(_onLoadFeatured);
 
     add(const FontLoadByCategory(FontCategory.all));
   }
@@ -47,5 +48,17 @@ class FontBloc extends Bloc<FontEvent, FontState> {
 
   void _onSelect(FontSelect event, Emitter<FontState> emit) {
     emit(state.copyWith(selectedFamily: event.family));
+  }
+
+  Future<void> _onLoadFeatured(
+      FontLoadFeatured event, Emitter<FontState> emit) async {
+    emit(state.copyWith(status: FontStatus.loading));
+    try {
+      final fonts = await _repository.getFeaturedFonts();
+      emit(state.copyWith(status: FontStatus.loaded, fonts: fonts));
+    } catch (e) {
+      emit(state.copyWith(
+          status: FontStatus.error, errorMessage: e.toString()));
+    }
   }
 }

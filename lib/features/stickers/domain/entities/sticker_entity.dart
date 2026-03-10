@@ -11,6 +11,8 @@ enum StickerCategory {
   shapes,
 }
 
+enum StickerRenderType { emoji, svg }
+
 class StickerEntity extends Equatable {
   final String id;
   final String name;
@@ -18,6 +20,7 @@ class StickerEntity extends Equatable {
   final StickerCategory category;
   final bool isPremium;
   final bool isLocal;
+  final StickerRenderType renderType;
 
   const StickerEntity({
     required this.id,
@@ -26,9 +29,10 @@ class StickerEntity extends Equatable {
     required this.category,
     this.isPremium = false,
     this.isLocal = true,
+    this.renderType = StickerRenderType.emoji,
   });
 
   @override
   List<Object?> get props =>
-      [id, name, assetPath, category, isPremium, isLocal];
+      [id, name, assetPath, category, isPremium, isLocal, renderType];
 }

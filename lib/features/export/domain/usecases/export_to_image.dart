@@ -39,6 +39,7 @@ class ExportToImage {
           await image.toByteData(format: ui.ImageByteFormat.png);
       return byteData?.buffer.asUint8List();
     } catch (e) {
+      debugPrint('TextArt Error: Capture failed: $e');
       return null;
     }
   }

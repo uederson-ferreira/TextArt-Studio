@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../bloc/editor_bloc.dart';
 import '../bloc/editor_event.dart';
@@ -152,8 +153,15 @@ class _TextElementWidgetState extends State<_TextElementWidget> {
                 if (widget.isSelected)
                   ElementControlsOverlay(
                     elementId: widget.element.id,
-                    onDelete: () {
-                      bloc.add(EditorRemoveText(widget.element.id));
+                    onDelete: () =>
+                        bloc.add(EditorRemoveText(widget.element.id)),
+                    onDuplicate: () =>
+                        bloc.add(EditorDuplicateText(widget.element.id)),
+                    onResizeUpdate: (details) {
+                      final delta = details.delta.dx + details.delta.dy;
+                      final newScale = (_scale + delta * 0.01).clamp(0.2, 5.0);
+                      setState(() => _scale = newScale);
+                      bloc.add(EditorScaleElement(widget.element.id, newScale));
                     },
                   ),
               ],
@@ -166,6 +174,25 @@ class _TextElementWidgetState extends State<_TextElementWidget> {
 
   Widget _buildText() {
     final el = widget.element;
+
+    Widget textWidget = Text(
+      el.text,
+      textAlign: _toTextAlign(el.alignment),
+      style: _buildTextStyle(el),
+    );
+
+    if (el.gradientColors != null && el.gradientColors!.length >= 2) {
+      textWidget = ShaderMask(
+        blendMode: BlendMode.srcIn,
+        shaderCallback: (bounds) => LinearGradient(
+          colors: el.gradientColors!,
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ).createShader(bounds),
+        child: textWidget,
+      );
+    }
+
     return Opacity(
       opacity: el.opacity,
       child: Container(
@@ -178,11 +205,7 @@ class _TextElementWidgetState extends State<_TextElementWidget> {
         padding: el.backgroundColor != null
             ? const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
             : null,
-        child: Text(
-          el.text,
-          textAlign: _toTextAlign(el.alignment),
-          style: _buildTextStyle(el),
-        ),
+        child: textWidget,
       ),
     );
   }
@@ -319,8 +342,15 @@ class _StickerElementWidgetState extends State<_StickerElementWidget> {
                 if (widget.isSelected)
                   ElementControlsOverlay(
                     elementId: widget.sticker.id,
-                    onDelete: () {
-                      bloc.add(EditorRemoveSticker(widget.sticker.id));
+                    onDelete: () =>
+                        bloc.add(EditorRemoveSticker(widget.sticker.id)),
+                    onDuplicate: () =>
+                        bloc.add(EditorDuplicateSticker(widget.sticker.id)),
+                    onResizeUpdate: (details) {
+                      final delta = details.delta.dx + details.delta.dy;
+                      final newScale = (_scale + delta * 0.01).clamp(0.2, 5.0);
+                      setState(() => _scale = newScale);
+                      bloc.add(EditorScaleElement(widget.sticker.id, newScale));
                     },
                   ),
               ],
@@ -332,13 +362,23 @@ class _StickerElementWidgetState extends State<_StickerElementWidget> {
   }
 
   Widget _buildStickerContent() {
-    // We use a placeholder emoji text for now — SVG loading handled in full impl
-    return Center(
-      child: Text(
-        widget.sticker.assetPath,
-        style: TextStyle(fontSize: widget.sticker.size * 0.8),
-        textAlign: TextAlign.center,
-      ),
-    );
+    switch (widget.sticker.type) {
+      case StickerType.svg:
+        return SvgPicture.string(
+          widget.sticker.assetPath,
+          width: widget.sticker.size,
+          height: widget.sticker.size,
+          fit: BoxFit.contain,
+        );
+      case StickerType.emoji:
+      default:
+        return Center(
+          child: Text(
+            widget.sticker.assetPath,
+            style: TextStyle(fontSize: widget.sticker.size * 0.8),
+            textAlign: TextAlign.center,
+          ),
+        );
+    }
   }
 }

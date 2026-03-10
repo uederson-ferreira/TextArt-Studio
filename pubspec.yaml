@@ -27,14 +27,6 @@ dependencies:
   image_gallery_saver: ^2.0.3
   share_plus: ^10.0.2
 
-  # Firebase
-  firebase_core: ^3.4.0
-  firebase_auth: ^5.2.0
-  cloud_firestore: ^5.3.0
-  firebase_storage: ^12.2.0
-  firebase_remote_config: ^5.1.0
-  firebase_analytics: ^11.3.0
-
   # State Management
   flutter_bloc: ^8.1.6
   equatable: ^2.0.5
@@ -57,8 +49,12 @@ dependencies:
   path_provider: ^2.1.4
   uuid: ^4.5.0
 
+  # Color picker
+  flutter_colorpicker: ^1.1.0
+
   # Icons
   cupertino_icons: ^1.0.8
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:

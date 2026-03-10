@@ -6,14 +6,31 @@ import 'core/di/injection_container.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Lock to portrait by default (can be overridden in editor)
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+  };
 
-  // Setup dependency injection
-  await setupDependencies();
+  try {
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
 
-  runApp(const TextArtStudioApp());
+    await setupDependencies();
+
+    runApp(const TextArtStudioApp());
+  } catch (e, st) {
+    runApp(MaterialApp(
+      home: Scaffold(
+        backgroundColor: Colors.red.shade900,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            'ERRO FATAL:\n$e\n\n$st',
+            style: const TextStyle(color: Colors.white, fontSize: 11),
+          ),
+        ),
+      ),
+    ));
+  }
 }

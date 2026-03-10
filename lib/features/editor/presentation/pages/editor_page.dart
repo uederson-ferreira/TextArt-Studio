@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -10,7 +11,12 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../core/di/injection_container.dart';
+import '../../../export/domain/usecases/export_to_image.dart';
 import '../../../export/presentation/widgets/export_options_sheet.dart';
+import '../../../export/presentation/widgets/export_web_helper_stub.dart'
+    if (dart.library.html) '../../../export/presentation/widgets/export_web_helper_web.dart';
+import '../../../export/presentation/widgets/mobile_export_stub.dart'
+    if (dart.library.io) '../../../export/presentation/widgets/mobile_export_io.dart';
 
 class EditorPage extends StatelessWidget {
   final String? projectId;
@@ -157,12 +163,83 @@ class _EditorViewState extends State<_EditorView> {
     );
   }
 
-  void _showExportSheet(BuildContext context) {
-    showModalBottomSheet(
+  Future<void> _showExportSheet(BuildContext context) async {
+    final bloc = context.read<EditorBloc>();
+
+    // 1. Show sheet and wait for user to confirm settings
+    final request = await showModalBottomSheet<ExportRequest>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => ExportOptionsSheet(repaintKey: _repaintKey),
+      builder: (_) => ExportOptionsSheet(
+        repaintKey: _repaintKey,
+        isPremium: false,
+      ),
     );
+
+    if (request == null || !context.mounted) return;
+
+    // 2. Sheet is now CLOSED → canvas is fully visible and will repaint
+    bloc.add(EditorSetExporting(true, transparent: request.transparent));
+
+    // 3. Wait for the canvas to repaint with the new state
+    await WidgetsBinding.instance.endOfFrame;
+    await WidgetsBinding.instance.endOfFrame;
+
+    // 4. Capture
+    final bytes = await ExportToImage(isPremium: false).call(
+      repaintKey: _repaintKey,
+    );
+
+    // 5. Restore canvas state
+    bloc.add(const EditorSetExporting(false));
+
+    if (bytes == null || bytes.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Falha ao capturar imagem.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    // 6. Save / Share / Download
+    try {
+      if (kIsWeb) {
+        await downloadImageOnWeb(
+            bytes, 'textart_${DateTime.now().millisecondsSinceEpoch}.png');
+      } else if (request.share) {
+        await shareImage(bytes);
+      } else {
+        final granted = await requestPhotoPermission();
+        if (!granted) throw 'Permissão de Galeria negada. Vá em Ajustes.';
+        await saveToGallery(bytes);
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(kIsWeb
+                ? 'Download iniciado!'
+                : (request.share
+                    ? 'Processo finalizado!'
+                    : 'Imagem salva na Galeria!')),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

@@ -1,13 +1,19 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-import '../../domain/usecases/export_to_image.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../../shared/widgets/gradient_button.dart';
+import '../../domain/usecases/export_to_image.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+
+/// Result returned when the user confirms export from the sheet.
+class ExportRequest {
+  final bool share;
+  final bool transparent;
+
+  const ExportRequest({required this.share, required this.transparent});
+}
 
 class ExportOptionsSheet extends StatefulWidget {
   final GlobalKey repaintKey;
@@ -24,7 +30,7 @@ class ExportOptionsSheet extends StatefulWidget {
 }
 
 class _ExportOptionsSheetState extends State<ExportOptionsSheet> {
-  bool _isExporting = false;
+  bool _exportTransparent = false;
   Uint8List? _preview;
 
   @override
@@ -34,71 +40,21 @@ class _ExportOptionsSheetState extends State<ExportOptionsSheet> {
   }
 
   Future<void> _generatePreview() async {
-    final bytes = await ExportToImage(isPremium: widget.isPremium).call(
-      repaintKey: widget.repaintKey,
-      pixelRatio: 1.0,
-    );
-    if (mounted) setState(() => _preview = bytes);
-  }
-
-  Future<void> _export({bool share = false}) async {
-    setState(() => _isExporting = true);
-
-    final bytes = await ExportToImage(isPremium: widget.isPremium).call(
-      repaintKey: widget.repaintKey,
-    );
-
-    if (bytes == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erro ao exportar imagem')),
-        );
-      }
-      setState(() => _isExporting = false);
-      return;
-    }
-
-    if (share) {
-      await _shareImage(bytes);
-    } else {
-      await _saveToGallery(bytes);
-    }
-
-    setState(() => _isExporting = false);
-    if (mounted) Navigator.of(context).pop();
-  }
-
-  Future<void> _shareImage(Uint8List bytes) async {
-    final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/textart_export.png');
-    await file.writeAsBytes(bytes);
-    await Share.shareXFiles(
-      [XFile(file.path, mimeType: 'image/png')],
-      text: 'Criado com TextArt Studio',
-    );
-  }
-
-  Future<void> _saveToGallery(Uint8List bytes) async {
     try {
-      // Save to app documents dir (gallery_saver approach)
-      final dir = await getApplicationDocumentsDirectory();
-      final filename =
-          'textart_${DateTime.now().millisecondsSinceEpoch}.png';
-      final file = File('${dir.path}/$filename');
-      await file.writeAsBytes(bytes);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Imagem salva em $filename')),
-        );
-      }
+      final bytes = await ExportToImage(isPremium: widget.isPremium).call(
+        repaintKey: widget.repaintKey,
+        pixelRatio: 1.0,
+      );
+      if (mounted) setState(() => _preview = bytes);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erro ao salvar imagem')),
-        );
-      }
+      debugPrint('TextArt preview error: $e');
     }
+  }
+
+  void _confirm({required bool share}) {
+    Navigator.of(context).pop(
+      ExportRequest(share: share, transparent: _exportTransparent),
+    );
   }
 
   @override
@@ -117,7 +73,6 @@ class _ExportOptionsSheetState extends State<ExportOptionsSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle
           Container(
             width: 40,
             height: 4,
@@ -135,11 +90,7 @@ class _ExportOptionsSheetState extends State<ExportOptionsSheet> {
           if (_preview != null)
             ClipRRect(
               borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-              child: Image.memory(
-                _preview!,
-                height: 200,
-                fit: BoxFit.contain,
-              ),
+              child: Image.memory(_preview!, height: 200, fit: BoxFit.contain),
             )
           else
             Container(
@@ -150,6 +101,17 @@ class _ExportOptionsSheetState extends State<ExportOptionsSheet> {
               ),
               child: const Center(child: CircularProgressIndicator()),
             ),
+
+          const SizedBox(height: AppSizes.space16),
+
+          SwitchListTile(
+            title: const Text('Fundo Transparente'),
+            subtitle: const Text('Remove o fundo colorido da imagem'),
+            value: _exportTransparent,
+            onChanged: (v) => setState(() => _exportTransparent = v),
+            activeThumbColor: AppColors.primary,
+            contentPadding: EdgeInsets.zero,
+          ),
 
           if (!widget.isPremium) ...[
             const SizedBox(height: AppSizes.space12),
@@ -167,8 +129,8 @@ class _ExportOptionsSheetState extends State<ExportOptionsSheet> {
                   Expanded(
                     child: Text(
                       'Plano free inclui marca d\'água. Faça upgrade para exportar sem.',
-                      style: AppTypography.labelSmall(
-                          color: AppColors.warning),
+                      style:
+                          AppTypography.labelSmall(color: AppColors.warning),
                     ),
                   ),
                 ],
@@ -178,27 +140,29 @@ class _ExportOptionsSheetState extends State<ExportOptionsSheet> {
 
           const SizedBox(height: AppSizes.space20),
 
-          if (_isExporting)
-            const CircularProgressIndicator()
-          else
-            Column(
-              children: [
-                GradientButton(
-                  label: 'Salvar na Galeria',
-                  icon: Icons.download,
-                  onPressed: () => _export(),
-                ),
-                const SizedBox(height: AppSizes.space12),
-                OutlinedButton.icon(
-                  onPressed: () => _export(share: true),
-                  icon: const Icon(Icons.share),
-                  label: const Text('Compartilhar'),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _confirm(share: true),
+                  icon: const Icon(Icons.share_outlined),
+                  label: Text(kIsWeb ? 'Baixar' : 'Compartilhar'),
                   style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 48),
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: AppColors.dividerDark),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: AppSizes.space12),
+              Expanded(
+                child: GradientButton(
+                  label: kIsWeb ? 'Baixar PNG' : 'Salvar na Galeria',
+                  onPressed: () => _confirm(share: false),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );

@@ -99,18 +99,44 @@ abstract final class AppConstants {
 
   /// Paleta de cores rápidas para o editor de texto
   static const List<int> quickColors = [
-    0xFFFFFFFF, // branco
-    0xFF000000, // preto
-    0xFFEF4444, // vermelho
-    0xFFF97316, // laranja
-    0xFFEAB308, // amarelo
-    0xFF22C55E, // verde
-    0xFF3B82F6, // azul
-    0xFF8B5CF6, // roxo
-    0xFFEC4899, // rosa
-    0xFF06B6D4, // ciano
-    0xFF84CC16, // lima
-    0xFF6366F1, // índigo
+    0xFFFFFFFF, // White
+    0xFF000000, // Black
+    0xFFEF4444, // Red
+    0xFFF97316, // Orange
+    0xFFFBBF24, // Yellow
+    0xFF22C55E, // Green
+    0xFF06B6D4, // Cyan
+    0xFF3B82F6, // Blue
+    0xFF8B5CF6, // Purple
+    0xFFEC4899, // Pink
+    0xFFF472B6, // Light Pink
+    0xFF14B8A6, // Teal
+    0xFFA3E635, // Lime
+    0xFFFF6B6B, // Coral
+    0xFFFFD700, // Gold
+    0xFFC084FC, // Lavender
+    0xFF67E8F9, // Sky
+    0xFFFDA4AF, // Rose
+    0xFF86EFAC, // Mint
+    0xFFD4D4D4, // Gray
+  ];
+
+  // ---------------------------------------------------------------------------
+  // CANVAS — GRADIENTES PREDEFINIDOS
+  // ---------------------------------------------------------------------------
+
+  /// Presets de gradiente (cada entrada é uma lista de cores ARGB32)
+  static const List<List<int>> gradientPresets = [
+    [0xFFFF6B6B, 0xFFFFE66D],        // Sunset
+    [0xFF8B5CF6, 0xFFEC4899],        // Galaxy
+    [0xFF4ECDC4, 0xFF44A8C5],        // Ocean
+    [0xFFF97316, 0xFFEF4444],        // Fire
+    [0xFF22C55E, 0xFF06B6D4],        // Mint
+    [0xFFEC4899, 0xFFF9A8D4],        // Pink
+    [0xFFFBBF24, 0xFFF59E0B],        // Gold
+    [0xFF6366F1, 0xFF8B5CF6],        // Purple
+    [0xFFFFFFFF, 0xFFD1D5DB],        // Silver
+    [0xFFFF6B6B, 0xFFEC4899, 0xFF8B5CF6], // Rainbow
   ];
 
   // ---------------------------------------------------------------------------

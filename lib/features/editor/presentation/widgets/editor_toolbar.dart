@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../bloc/editor_bloc.dart';
 import '../bloc/editor_event.dart';
@@ -12,6 +14,9 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_typography.dart';
 import '../../../fonts/presentation/pages/font_picker_page.dart';
+import '../../../stickers/data/repositories/local_svg_stickers.dart';
+import '../../../stickers/domain/entities/sticker_entity.dart';
+import '../../../stickers/presentation/pages/sticker_picker_page.dart';
 
 enum ToolbarTab { text, sticker, background, export }
 
@@ -135,6 +140,8 @@ class _AddTextPanelState extends State<_AddTextPanel> {
   double _fontSize = 32;
   String? _fontFamily;
   Color _color = Colors.white;
+  List<Color>? _gradientColors;
+  final double _gradientAngle = 0.0;
 
   @override
   void dispose() {
@@ -209,10 +216,13 @@ class _AddTextPanelState extends State<_AddTextPanel> {
             onChanged: (v) => setState(() => _fontSize = v),
           ),
 
-          // Color picker
-          _ColorPickerRow(
+          // Enhanced color picker
+          _EnhancedColorPickerSection(
             selectedColor: _color,
+            gradientColors: _gradientColors,
             onColorChanged: (c) => setState(() => _color = c),
+            onGradientChanged: (colors) =>
+                setState(() => _gradientColors = colors),
           ),
           const SizedBox(height: AppSizes.space12),
 
@@ -245,6 +255,8 @@ class _AddTextPanelState extends State<_AddTextPanel> {
       fontSize: _fontSize,
       color: _color,
       fontFamily: _fontFamily ?? 'Poppins',
+      gradientColors: _gradientColors,
+      gradientAngle: _gradientAngle,
     );
     context.read<EditorBloc>().add(EditorAddText(element));
     widget.onClose();
@@ -273,6 +285,8 @@ class _EditTextPanelState extends State<_EditTextPanel> {
   late double _fontSize;
   late String _fontFamily;
   late Color _color;
+  List<Color>? _gradientColors;
+  double _gradientAngle = 0.0;
 
   @override
   void initState() {
@@ -281,6 +295,8 @@ class _EditTextPanelState extends State<_EditTextPanel> {
     _fontSize = widget.element.fontSize;
     _fontFamily = widget.element.fontFamily;
     _color = widget.element.color;
+    _gradientColors = widget.element.gradientColors;
+    _gradientAngle = widget.element.gradientAngle;
   }
 
   @override
@@ -291,6 +307,8 @@ class _EditTextPanelState extends State<_EditTextPanel> {
       _fontSize = widget.element.fontSize;
       _fontFamily = widget.element.fontFamily;
       _color = widget.element.color;
+      _gradientColors = widget.element.gradientColors;
+      _gradientAngle = widget.element.gradientAngle;
     }
   }
 
@@ -377,11 +395,16 @@ class _EditTextPanelState extends State<_EditTextPanel> {
             },
           ),
 
-          // Color picker
-          _ColorPickerRow(
+          // Enhanced color picker
+          _EnhancedColorPickerSection(
             selectedColor: _color,
+            gradientColors: _gradientColors,
             onColorChanged: (c) {
               setState(() => _color = c);
+              _applyChanges();
+            },
+            onGradientChanged: (colors) {
+              setState(() => _gradientColors = colors);
               _applyChanges();
             },
           ),
@@ -396,8 +419,235 @@ class _EditTextPanelState extends State<_EditTextPanel> {
       fontSize: _fontSize,
       fontFamily: _fontFamily,
       color: _color,
+      gradientColors: _gradientColors,
+      clearGradient: _gradientColors == null,
+      gradientAngle: _gradientAngle,
     );
     context.read<EditorBloc>().add(EditorUpdateText(updated));
+  }
+}
+
+// ---------------------------------------------------------------------------
+// ENHANCED COLOR PICKER SECTION (color + gradient)
+// ---------------------------------------------------------------------------
+
+class _EnhancedColorPickerSection extends StatelessWidget {
+  final Color selectedColor;
+  final List<Color>? gradientColors;
+  final ValueChanged<Color> onColorChanged;
+  final ValueChanged<List<Color>?> onGradientChanged;
+
+  const _EnhancedColorPickerSection({
+    required this.selectedColor,
+    required this.gradientColors,
+    required this.onColorChanged,
+    required this.onGradientChanged,
+  });
+
+  void _openColorPicker(BuildContext context) {
+    Color pickerColor = selectedColor;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceElevatedDark,
+        title: Text('Escolher Cor', style: AppTypography.titleMedium()),
+        content: SingleChildScrollView(
+          child: ColorPicker(
+            pickerColor: pickerColor,
+            onColorChanged: (c) => pickerColor = c,
+            enableAlpha: false,
+            hexInputBar: true,
+            labelTypes: const [],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              onColorChanged(pickerColor);
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // --- Color section ---
+        Row(
+          children: [
+            Text('Cor do Texto', style: AppTypography.labelMedium()),
+            const SizedBox(width: AppSizes.space8),
+            // Selected color indicator
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: gradientColors != null && gradientColors!.length >= 2
+                    ? null
+                    : selectedColor,
+                gradient: gradientColors != null && gradientColors!.length >= 2
+                    ? LinearGradient(colors: gradientColors!)
+                    : null,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.dividerDark),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSizes.space8),
+        SizedBox(
+          height: 36,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              // Quick color swatches
+              ...AppConstants.quickColors.map((colorInt) {
+                final color = Color(colorInt);
+                final isSelected = gradientColors == null &&
+                    selectedColor.toARGB32() == colorInt;
+                return GestureDetector(
+                  onTap: () {
+                    onColorChanged(color);
+                    onGradientChanged(null); // clear gradient
+                  },
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    margin: const EdgeInsets.only(right: AppSizes.space8),
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.dividerDark,
+                        width: isSelected ? 2.5 : 1,
+                      ),
+                    ),
+                    child: isSelected
+                        ? Icon(
+                            Icons.check,
+                            size: 16,
+                            color: color.computeLuminance() > 0.5
+                                ? Colors.black
+                                : Colors.white,
+                          )
+                        : null,
+                  ),
+                );
+              }),
+              // "+" custom color button
+              GestureDetector(
+                onTap: () => _openColorPicker(context),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceHighDark,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.dividerDark),
+                  ),
+                  child: const Icon(Icons.add,
+                      size: 18, color: AppColors.textSecondaryDark),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: AppSizes.space12),
+
+        // --- Gradient section ---
+        Text('Gradiente', style: AppTypography.labelMedium()),
+        const SizedBox(height: AppSizes.space8),
+        SizedBox(
+          height: 36,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              // "Nenhum" pill
+              GestureDetector(
+                onTap: () => onGradientChanged(null),
+                child: Container(
+                  margin: const EdgeInsets.only(right: AppSizes.space8),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.space12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: gradientColors == null
+                        ? AppColors.primary
+                        : AppColors.surfaceHighDark,
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.radiusCircle),
+                    border: Border.all(
+                      color: gradientColors == null
+                          ? AppColors.primary
+                          : AppColors.dividerDark,
+                    ),
+                  ),
+                  child: Text(
+                    'Nenhum',
+                    style: AppTypography.labelSmall(
+                      color: gradientColors == null
+                          ? Colors.white
+                          : AppColors.textSecondaryDark,
+                    ),
+                  ),
+                ),
+              ),
+              // Gradient preset swatches
+              ...AppConstants.gradientPresets.map((preset) {
+                final colors = preset.map((v) => Color(v)).toList();
+                final isSelected = gradientColors != null &&
+                    gradientColors!.length == colors.length &&
+                    _listsEqual(
+                      gradientColors!
+                          .map((c) => c.toARGB32())
+                          .toList(),
+                      preset,
+                    );
+                return GestureDetector(
+                  onTap: () => onGradientChanged(colors),
+                  child: Container(
+                    width: 48,
+                    height: 28,
+                    margin: const EdgeInsets.only(right: AppSizes.space8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: colors),
+                      borderRadius:
+                          BorderRadius.circular(AppSizes.radiusSm),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.dividerDark,
+                        width: isSelected ? 2 : 1,
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  bool _listsEqual(List<int> a, List<int> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 }
 
@@ -472,135 +722,192 @@ class _FontSelectorRow extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// SHARED: COLOR PICKER ROW
-// ---------------------------------------------------------------------------
-
-class _ColorPickerRow extends StatelessWidget {
-  final Color selectedColor;
-  final ValueChanged<Color> onColorChanged;
-
-  const _ColorPickerRow({
-    required this.selectedColor,
-    required this.onColorChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 36,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: AppConstants.quickColors.length,
-        separatorBuilder: (_, __) =>
-            const SizedBox(width: AppSizes.space8),
-        itemBuilder: (context, i) {
-          final color = Color(AppConstants.quickColors[i]);
-          final isSelected = selectedColor.toARGB32() ==
-              AppConstants.quickColors[i];
-          return GestureDetector(
-            onTap: () => onColorChanged(color),
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected
-                      ? AppColors.primary
-                      : AppColors.dividerDark,
-                  width: isSelected ? 2.5 : 1,
-                ),
-              ),
-              child: isSelected
-                  ? Icon(
-                      Icons.check,
-                      size: 16,
-                      color: color.computeLuminance() > 0.5
-                          ? Colors.black
-                          : Colors.white,
-                    )
-                  : null,
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
 // STICKER PANEL
 // ---------------------------------------------------------------------------
 
-class _StickerPanel extends StatelessWidget {
+class _StickerPanel extends StatefulWidget {
   final VoidCallback onClose;
 
   const _StickerPanel({required this.onClose});
 
+  @override
+  State<_StickerPanel> createState() => _StickerPanelState();
+}
+
+class _StickerPanelState extends State<_StickerPanel> {
+  int _tab = 0; // 0 = SVG, 1 = Emoji
+
   static const _emojis = [
     '⭐', '❤️', '🔥', '✨', '💫', '🎉', '🎨', '🎭',
     '🌈', '🦋', '🌺', '🍀', '💎', '🏆', '🎸', '🚀',
+    '😍', '😎', '🥳', '💪', '👑', '🌟', '💥', '🎯',
   ];
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppSizes.space16),
+      constraints: const BoxConstraints(maxHeight: 320),
       decoration: const BoxDecoration(
         color: AppColors.surfaceElevatedDark,
         border: Border(top: BorderSide(color: AppColors.dividerDark)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Stickers', style: AppTypography.titleMedium()),
-              IconButton(
-                icon: const Icon(Icons.close,
-                    color: AppColors.textSecondaryDark),
-                onPressed: onClose,
-              ),
-            ],
-          ),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 8,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-            ),
-            itemCount: _emojis.length,
-            itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () {
-                  final sticker = StickerElement.create(
-                    assetPath: _emojis[index],
-                    type: StickerType.emoji,
-                  );
-                  context.read<EditorBloc>().add(EditorAddSticker(sticker));
-                  onClose();
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceHighDark,
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.radiusSm),
-                  ),
-                  child: Center(
-                    child: Text(_emojis[index],
-                        style: const TextStyle(fontSize: 24)),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                AppSizes.space16, AppSizes.space12, AppSizes.space8, 0),
+            child: Row(
+              children: [
+                _tabChip('Artes', 0),
+                const SizedBox(width: AppSizes.space8),
+                _tabChip('Emojis', 1),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => _openFullPicker(context),
+                  icon: const Icon(Icons.grid_view, size: 16),
+                  label: const Text('Ver todos'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    textStyle: const TextStyle(fontSize: 13),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                   ),
                 ),
-              );
-            },
+                IconButton(
+                  icon: const Icon(Icons.close,
+                      color: AppColors.textSecondaryDark, size: 20),
+                  onPressed: widget.onClose,
+                ),
+              ],
+            ),
+          ),
+          Flexible(
+            child: _tab == 0 ? _buildSvgGrid(context) : _buildEmojiGrid(context),
           ),
         ],
       ),
+    );
+  }
+
+  void _openFullPicker(BuildContext context) {
+    final bloc = context.read<EditorBloc>();
+    widget.onClose();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.75,
+        minChildSize: 0.4,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (_, scrollController) => ClipRRect(
+          borderRadius:
+              const BorderRadius.vertical(top: Radius.circular(20)),
+          child: StickerPickerPage(
+            onStickerSelected: (sticker) {
+              final element = StickerElement.create(
+                assetPath: sticker.assetPath,
+                type: sticker.renderType == StickerRenderType.svg
+                    ? StickerType.svg
+                    : StickerType.emoji,
+              );
+              bloc.add(EditorAddSticker(element));
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _tabChip(String label, int index) {
+    final active = _tab == index;
+    return GestureDetector(
+      onTap: () => setState(() => _tab = index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? AppColors.primary : AppColors.surfaceHighDark,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: active ? Colors.white : AppColors.textSecondaryDark,
+            fontSize: 13,
+            fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSvgGrid(BuildContext context) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(AppSizes.space12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 6,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+      ),
+      itemCount: localSvgStickers.length,
+      itemBuilder: (context, index) {
+        final svgData = localSvgStickers[index].assetPath;
+        final name = localSvgStickers[index].name;
+        return GestureDetector(
+          onTap: () {
+            final sticker = StickerElement.create(
+              assetPath: svgData,
+              type: StickerType.svg,
+            );
+            context.read<EditorBloc>().add(EditorAddSticker(sticker));
+            widget.onClose();
+          },
+          child: Tooltip(
+            message: name,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceHighDark,
+                borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+              ),
+              padding: const EdgeInsets.all(4),
+              child: SvgPicture.string(svgData, fit: BoxFit.contain),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmojiGrid(BuildContext context) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(AppSizes.space12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 8,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+      ),
+      itemCount: _emojis.length,
+      itemBuilder: (context, index) {
+        return GestureDetector(
+          onTap: () {
+            final sticker = StickerElement.create(
+              assetPath: _emojis[index],
+              type: StickerType.emoji,
+            );
+            context.read<EditorBloc>().add(EditorAddSticker(sticker));
+            widget.onClose();
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surfaceHighDark,
+              borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+            ),
+            child:
+                Center(child: Text(_emojis[index], style: const TextStyle(fontSize: 24))),
+          ),
+        );
+      },
     );
   }
 }

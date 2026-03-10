@@ -41,6 +41,7 @@ class StickerElement extends Equatable {
   }
 
   StickerElement copyWith({
+    String? id,
     String? assetPath,
     StickerType? type,
     Offset? position,
@@ -50,7 +51,7 @@ class StickerElement extends Equatable {
     double? opacity,
   }) {
     return StickerElement(
-      id: id,
+      id: id ?? this.id,
       assetPath: assetPath ?? this.assetPath,
       type: type ?? this.type,
       position: position ?? this.position,

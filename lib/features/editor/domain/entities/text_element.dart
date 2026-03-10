@@ -22,6 +22,8 @@ class TextElement extends Equatable {
   final bool hasStroke;
   final Color strokeColor;
   final double strokeWidth;
+  final List<Color>? gradientColors;
+  final double gradientAngle;
 
   const TextElement({
     required this.id,
@@ -41,6 +43,8 @@ class TextElement extends Equatable {
     this.hasStroke = false,
     this.strokeColor = Colors.black,
     this.strokeWidth = 2.0,
+    this.gradientColors,
+    this.gradientAngle = 0.0,
   });
 
   factory TextElement.create({
@@ -49,6 +53,8 @@ class TextElement extends Equatable {
     double fontSize = 32,
     Color color = Colors.white,
     Offset? position,
+    List<Color>? gradientColors,
+    double gradientAngle = 0.0,
   }) {
     return TextElement(
       id: const Uuid().v4(),
@@ -57,10 +63,13 @@ class TextElement extends Equatable {
       fontSize: fontSize,
       color: color,
       position: position ?? const Offset(0, 0),
+      gradientColors: gradientColors,
+      gradientAngle: gradientAngle,
     );
   }
 
   TextElement copyWith({
+    String? id,
     String? text,
     String? fontFamily,
     double? fontSize,
@@ -77,9 +86,12 @@ class TextElement extends Equatable {
     bool? hasStroke,
     Color? strokeColor,
     double? strokeWidth,
+    List<Color>? gradientColors,
+    bool clearGradient = false,
+    double? gradientAngle,
   }) {
     return TextElement(
-      id: id,
+      id: id ?? this.id,
       text: text ?? this.text,
       fontFamily: fontFamily ?? this.fontFamily,
       fontSize: fontSize ?? this.fontSize,
@@ -96,6 +108,8 @@ class TextElement extends Equatable {
       hasStroke: hasStroke ?? this.hasStroke,
       strokeColor: strokeColor ?? this.strokeColor,
       strokeWidth: strokeWidth ?? this.strokeWidth,
+      gradientColors: clearGradient ? null : (gradientColors ?? this.gradientColors),
+      gradientAngle: gradientAngle ?? this.gradientAngle,
     );
   }
 
@@ -118,32 +132,46 @@ class TextElement extends Equatable {
         'hasStroke': hasStroke,
         'strokeColor': strokeColor.toARGB32(),
         'strokeWidth': strokeWidth,
+        'gradientColors': gradientColors?.map((c) => c.toARGB32()).toList(),
+        'gradientAngle': gradientAngle,
       };
 
-  factory TextElement.fromJson(Map<String, dynamic> json) => TextElement(
-        id: json['id'] as String,
-        text: json['text'] as String,
-        fontFamily: json['fontFamily'] as String,
-        fontSize: (json['fontSize'] as num).toDouble(),
-        color: Color(json['color'] as int),
-        backgroundColor: json['backgroundColor'] != null
-            ? Color(json['backgroundColor'] as int)
-            : null,
-        fontWeight: _fontWeightFromValue(json['fontWeight'] as int),
-        fontStyle: FontStyle.values[json['fontStyle'] as int],
-        alignment: TextAlignment.values[json['alignment'] as int],
-        rotation: (json['rotation'] as num).toDouble(),
-        position: Offset(
-          (json['positionX'] as num).toDouble(),
-          (json['positionY'] as num).toDouble(),
-        ),
-        scale: (json['scale'] as num).toDouble(),
-        opacity: (json['opacity'] as num).toDouble(),
-        hasShadow: json['hasShadow'] as bool,
-        hasStroke: json['hasStroke'] as bool,
-        strokeColor: Color(json['strokeColor'] as int),
-        strokeWidth: (json['strokeWidth'] as num).toDouble(),
-      );
+  factory TextElement.fromJson(Map<String, dynamic> json) {
+    List<Color>? gradientColors;
+    final rawGradient = json['gradientColors'];
+    if (rawGradient != null) {
+      gradientColors = (rawGradient as List<dynamic>)
+          .map((v) => Color(v as int))
+          .toList();
+    }
+
+    return TextElement(
+      id: json['id'] as String,
+      text: json['text'] as String,
+      fontFamily: json['fontFamily'] as String,
+      fontSize: (json['fontSize'] as num).toDouble(),
+      color: Color(json['color'] as int),
+      backgroundColor: json['backgroundColor'] != null
+          ? Color(json['backgroundColor'] as int)
+          : null,
+      fontWeight: _fontWeightFromValue(json['fontWeight'] as int),
+      fontStyle: FontStyle.values[json['fontStyle'] as int],
+      alignment: TextAlignment.values[json['alignment'] as int],
+      rotation: (json['rotation'] as num).toDouble(),
+      position: Offset(
+        (json['positionX'] as num).toDouble(),
+        (json['positionY'] as num).toDouble(),
+      ),
+      scale: (json['scale'] as num).toDouble(),
+      opacity: (json['opacity'] as num).toDouble(),
+      hasShadow: json['hasShadow'] as bool,
+      hasStroke: json['hasStroke'] as bool,
+      strokeColor: Color(json['strokeColor'] as int),
+      strokeWidth: (json['strokeWidth'] as num).toDouble(),
+      gradientColors: gradientColors,
+      gradientAngle: (json['gradientAngle'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -164,6 +192,8 @@ class TextElement extends Equatable {
         hasStroke,
         strokeColor,
         strokeWidth,
+        gradientColors,
+        gradientAngle,
       ];
 }
 

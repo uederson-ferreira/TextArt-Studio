@@ -65,7 +65,7 @@ abstract final class AppSizes {
 
   static const double canvasMinScale = 0.5;
   static const double canvasMaxScale = 5.0;
-  static const double handleSize = 24;
+  static const double handleSize = 36;
 
   // ---------------------------------------------------------------------------
   // DURAÇÕES DE ANIMAÇÃO

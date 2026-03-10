@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uuid/uuid.dart';
 import '../../domain/entities/project.dart';
 import '../../../projects/domain/repositories/project_repository.dart';
 import 'editor_event.dart';
@@ -19,6 +21,8 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
     on<EditorAddSticker>(_onAddSticker);
     on<EditorUpdateSticker>(_onUpdateSticker);
     on<EditorRemoveSticker>(_onRemoveSticker);
+    on<EditorDuplicateSticker>(_onDuplicateSticker);
+    on<EditorDuplicateText>(_onDuplicateText);
     on<EditorSelectElement>(_onSelectElement);
     on<EditorSetBackground>(_onSetBackground);
     on<EditorUndo>(_onUndo);
@@ -28,6 +32,7 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
     on<EditorMoveElement>(_onMoveElement);
     on<EditorScaleElement>(_onScaleElement);
     on<EditorRotateElement>(_onRotateElement);
+    on<EditorSetExporting>(_onSetExporting);
   }
 
   Future<void> _onLoadProject(
@@ -122,6 +127,48 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
     emit(state.copyWith(
       project: state.project.copyWith(stickerElements: filtered),
       clearSelection: true,
+      canUndo: _history.canUndo,
+      canRedo: _history.canRedo,
+    ));
+  }
+
+  void _onDuplicateSticker(
+      EditorDuplicateSticker event, Emitter<EditorState> emit) {
+    final original = state.project.stickerElements
+        .where((e) => e.id == event.elementId)
+        .firstOrNull;
+    if (original == null) return;
+    _history.push(state.project);
+    const offset = Offset(24, 24);
+    final copy = original.copyWith(
+      id: const Uuid().v4(),
+      position: original.position + offset,
+    );
+    emit(state.copyWith(
+      project: state.project.copyWith(
+          stickerElements: [...state.project.stickerElements, copy]),
+      selectedElementId: copy.id,
+      canUndo: _history.canUndo,
+      canRedo: _history.canRedo,
+    ));
+  }
+
+  void _onDuplicateText(
+      EditorDuplicateText event, Emitter<EditorState> emit) {
+    final original = state.project.textElements
+        .where((e) => e.id == event.elementId)
+        .firstOrNull;
+    if (original == null) return;
+    _history.push(state.project);
+    const offset = Offset(24, 24);
+    final copy = original.copyWith(
+      id: const Uuid().v4(),
+      position: original.position + offset,
+    );
+    emit(state.copyWith(
+      project: state.project.copyWith(
+          textElements: [...state.project.textElements, copy]),
+      selectedElementId: copy.id,
       canUndo: _history.canUndo,
       canRedo: _history.canRedo,
     ));
@@ -265,5 +312,13 @@ class EditorBloc extends Bloc<EditorEvent, EditorState> {
         project: state.project.copyWith(stickerElements: updated),
       ));
     }
+  }
+
+  void _onSetExporting(EditorSetExporting event, Emitter<EditorState> emit) {
+    emit(state.copyWith(
+      isExporting: event.isExporting,
+      exportTransparent: event.transparent,
+      clearSelection: event.isExporting, // Hide handles during export
+    ));
   }
 }
